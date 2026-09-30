@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админка</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', Arial, sans-serif; background: #ebe4dd; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+        h1 { color: #4a1f1f; font-size: 22px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
+        .current { background: #f5efe6; padding: 12px; border-radius: 10px; margin-bottom: 16px; font-size: 15px; color: #4a1f1f; }
+        .current b { font-size: 20px; color: #8b0000; }
+        label { display: block; text-align: left; font-size: 14px; color: #4a1f1f; margin-bottom: 6px; margin-top: 12px; }
+        input { width: 100%; padding: 12px 14px; font-size: 16px; border: 2px solid #ebe4dd; border-radius: 10px; outline: none; font-family: inherit; }
+        input:focus { border-color: #c9a227; }
+        .btn { width: 100%; padding: 14px; margin-top: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .btn-save { background: #c9a227; color: #fff; }
+        .btn-login { background: #4a1f1f; color: #fff; }
+        .status { margin-top: 14px; font-size: 14px; color: #2a7a2a; display: none; }
+        .status.show { display: block; }
+        .status.error { color: #a00; }
+        #adminPanel { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>Админка</h1>
+
+    <div class="card" id="loginScreen">
+        <label>Пароль</label>
+        <input type="password" id="passwordInput" placeholder="Введите пароль">
+        <button class="btn btn-login" onclick="login()">Войти</button>
+        <div class="status" id="loginStatus"></div>
+    </div>
+
+    <div class="card" id="adminPanel">
+        <div class="current">
+            👦 Мальчик: <b id="currentBoy">0 ₽</b><br>
+            👧 Девочка: <b id="currentGirl">0 ₽</b>
+        </div>
+        <label>💰 Сколько пришло за мальчика (прибавить)</label>
+        <input type="number" id="boyAdd" placeholder="0" min="0">
+        <label>💰 Сколько пришло за девочку (прибавить)</label>
+        <input type="number" id="girlAdd" placeholder="0" min="0">
+        <button class="btn btn-save" onclick="addSums()">Прибавить к итогу</button>
+        <div class="status" id="saveStatus"></div>
+    </div>
+
+    <script>
+        const NAMESPACE = 'sbor';           // ← то же имя, что и везде
+        const ADMIN_PASSWORD = '89198635781';   // ← придумай свой пароль
+
+        let currentBoy = 0, currentGirl = 0;
+
+        async function loadSums() {
+            try {
+                const b = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy_sum`).then(r => r.json());
+                currentBoy = b.value || 0;
+                document.getElementById('currentBoy').textContent = currentBoy + ' ₽';
+            } catch (e) {}
+            try {
+                const g = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl_sum`).then(r => r.json());
+                currentGirl = g.value || 0;
+                document.getElementById('currentGirl').textContent = currentGirl + ' ₽';
+            } catch (e) {}
+        }
+
+        function login() {
+            const pass = document.getElementById('passwordInput').value;
+            const status = document.getElementById('loginStatus');
+            if (pass === ADMIN_PASSWORD) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadSums();
+            } else {
+                status.textContent = 'Неверный пароль';
+                status.className = 'status show error';
+            }
+        }
+
+        async function addSums() {
+            const addBoy = parseInt(document.getElementById('boyAdd').value) || 0;
+            const addGirl = parseInt(document.getElementById('girlAdd').value) || 0;
+            const status = document.getElementById('saveStatus');
+
+            if (addBoy === 0 && addGirl === 0) {
+                status.textContent = 'Введите сумму больше нуля';
+                status.className = 'status show error';
+                return;
+            }
+
+            const newBoy = currentBoy + addBoy;
+            const newGirl = currentGirl + addGirl;
+
+            try {
+                await fetch(`https://api.countapi.xyz/set/${NAMESPACE}/boy_sum?value=${newBoy}`);
+                await fetch(`https://api.countapi.xyz/set/${NAMESPACE}/girl_sum?value=${newGirl}`);
+                currentBoy = newBoy; currentGirl = newGirl;
+                document.getElementById('currentBoy').textContent = currentBoy + ' ₽';
+                document.getElementById('currentGirl').textContent = currentGirl + ' ₽';
+                document.getElementById('boyAdd').value = '';
+                document.getElementById('girlAdd').value = '';
+                status.textContent = '✅ Новый итог: 👦 ' + currentBoy + ' ₽ / 👧 ' + currentGirl + ' ₽';
+                status.className = 'status show';
+                setTimeout(() => status.classList.remove('show'), 4000);
+            } catch (e) {
+                status.textContent = '❌ Ошибка';
+                status.className = 'status show error';
+            }
+        }
+    </script>
+
+</body>
+</html>

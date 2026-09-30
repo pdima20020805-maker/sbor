@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        body {
+            background: url('img/bg.jpg') center/cover no-repeat fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+        /* Затемняющая плёнка, чтобы текст читался */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .content { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+        /* Верхний QR */
+        .qr-top {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .qr-top img {
+            display: block;
+            width: 130px;
+            height: 130px;
+        }
+        .qr-top .caption {
+            font-size: 12px;
+            color: #4a1f1f;
+            margin-top: 6px;
+            font-weight: 700;
+        }
+
+        /* Счётчики */
+        .stats {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 500px;
+            justify-content: space-between;
+        }
+        .stat {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 18px;
+            padding: 16px 14px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            backdrop-filter: blur(4px);
+        }
+        .stat.boy { border-top: 5px solid #4a90d9; }
+        .stat.girl { border-top: 5px solid #e8a0b4; }
+        .stat .title { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+        .stat.boy .title { color: #4a90d9; }
+        .stat.girl .title { color: #e8a0b4; }
+        .stat .num {
+            font-size: 38px;
+            font-weight: 900;
+            color: #4a1f1f;
+            line-height: 1;
+        }
+        .stat .sub { font-size: 11px; color: #888; margin-top: 4px; }
+        .stat .money {
+            font-size: 20px;
+            font-weight: 800;
+            color: #8b0000;
+            margin-top: 10px;
+        }
+
+        /* Нижняя кнопка "Пожертвовать" */
+        .donate-wrap {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-donate {
+            background: #c9a227;
+            color: #fff;
+            padding: 16px 44px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 6px 24px rgba(201,162,39,0.5);
+            transition: transform 0.15s;
+        }
+        .btn-donate:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+
+        <!-- QR сверху -->
+        <div class="qr-top">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://pdima20020805-maker.github.io/sbor/vote.html" alt="QR">
+            <div class="caption">Отсканируй и проголосуй</div>
+        </div>
+
+        <!-- Счётчики -->
+        <div class="stats">
+            <div class="stat boy">
+                <div class="title">👦 Мальчик</div>
+                <div class="num" id="boyCount">0</div>
+                <div class="sub">голосов</div>
+                <div class="money" id="boySum">0 ₽</div>
+            </div>
+            <div class="stat girl">
+                <div class="title">👧 Девочка</div>
+                <div class="num" id="girlCount">0</div>
+                <div class="sub">голосов</div>
+                <div class="money" id="girlSum">0 ₽</div>
+            </div>
+        </div>
+
+        <!-- Кнопка пожертвовать -->
+        <div class="donate-wrap">
+            <!-- ⚠️ Замени ССЫЛКА_НА_ПЕРЕВОД на свою -->
+            <a class="btn-donate" href="https://t.tb.ru/pm_short/2pztjHHrZMQ" target="_blank">💛 Пожертвовать</a>
+        </div>
+
+    </div>
+
+    <script>
+        // ⚠️ Уникальное имя — одинаковое во всех файлах
+        const NAMESPACE = 'sbor2026';
+
+        async function loadData() {
+            try {
+                const b = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy`).then(r => r.json());
+                document.getElementById('boyCount').textContent = b.value || 0;
+            } catch (e) {}
+            try {
+                const g = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl`).then(r => r.json());
+                document.getElementById('girlCount').textContent = g.value || 0;
+            } catch (e) {}
+            try {
+                const bs = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy_sum`).then(r => r.json());
+                document.getElementById('boySum').textContent = (bs.value || 0) + ' ₽';
+            } catch (e) {}
+            try {
+                const gs = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl_sum`).then(r => r.json());
+                document.getElementById('girlSum').textContent = (gs.value || 0) + ' ₽';
+            } catch (e) {}
+        }
+
+        loadData();
+        setInterval(loadData, 5000);
+    </script>
+
+</body>
+</html>
