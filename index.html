@@ -9,6 +9,7 @@
         html, body {
             height: 100%;
             font-family: 'Montserrat', Arial, sans-serif;
+            overflow: hidden;
         }
         body {
             background: url('img/bg.jpg') center/cover no-repeat fixed;
@@ -16,156 +17,144 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 20px;
-            min-height: 100vh;
+            padding: 16px;
             position: relative;
         }
-        /* Затемняющая плёнка, чтобы текст читался */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.1);
             pointer-events: none;
-            z-index: 0;
         }
-        .content { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        /* Верхний QR */
+        /* Верх: QR по центру */
         .qr-top {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 12px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.95);
+            padding: 10px;
+            border-radius: 18px;
+            box-shadow: 0 6px 28px rgba(0,0,0,0.2);
             text-align: center;
-            margin-bottom: 20px;
+            margin-top: 10px;
         }
         .qr-top img {
             display: block;
-            width: 130px;
-            height: 130px;
+            width: 200px;
+            height: 200px;
         }
         .qr-top .caption {
-            font-size: 12px;
+            font-size: 13px;
             color: #4a1f1f;
             margin-top: 6px;
-            font-weight: 700;
+            font-weight: 800;
         }
 
-        /* Счётчики */
+        /* Середина: счётчики */
         .stats {
+            position: relative;
+            z-index: 1;
             display: flex;
-            gap: 20px;
+            gap: 16px;
             width: 100%;
-            max-width: 500px;
+            max-width: 560px;
             justify-content: space-between;
+            margin-top: 10px;
         }
         .stat {
             flex: 1;
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 18px;
-            padding: 16px 14px;
+            background: rgba(255,255,255,0.92);
+            border-radius: 20px;
+            padding: 18px 14px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            backdrop-filter: blur(4px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+            backdrop-filter: blur(6px);
         }
-        .stat.boy { border-top: 5px solid #4a90d9; }
-        .stat.girl { border-top: 5px solid #e8a0b4; }
-        .stat .title { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+        .stat.boy { border-top: 6px solid #4a90d9; }
+        .stat.girl { border-top: 6px solid #e8a0b4; }
+        .stat .title { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
         .stat.boy .title { color: #4a90d9; }
         .stat.girl .title { color: #e8a0b4; }
         .stat .num {
-            font-size: 38px;
+            font-size: 44px;
             font-weight: 900;
             color: #4a1f1f;
             line-height: 1;
         }
-        .stat .sub { font-size: 11px; color: #888; margin-top: 4px; }
+        .stat .sub { font-size: 12px; color: #888; margin-top: 4px; }
         .stat .money {
-            font-size: 20px;
-            font-weight: 800;
+            font-size: 24px;
+            font-weight: 900;
             color: #8b0000;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
-        /* Нижняя кнопка "Пожертвовать" */
+        /* Низ: кнопка */
         .donate-wrap {
             position: relative;
             z-index: 1;
-            margin-top: 24px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
+            margin-bottom: 14px;
         }
         .btn-donate {
             background: #c9a227;
             color: #fff;
-            padding: 16px 44px;
-            border-radius: 14px;
-            font-size: 17px;
+            padding: 16px 40px;
+            border-radius: 16px;
+            font-size: 18px;
             font-weight: 800;
             text-decoration: none;
-            box-shadow: 0 6px 24px rgba(201,162,39,0.5);
+            box-shadow: 0 6px 24px rgba(201,162,39,0.55);
             transition: transform 0.15s;
+            display: inline-block;
         }
         .btn-donate:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
-    <div class="content">
+    <div class="qr-top">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://pdima20020805-maker.github.io/sbor/vote.html" alt="QR">
+        <div class="caption">Отсканируй и проголосуй</div>
+    </div>
 
-        <!-- QR сверху -->
-        <div class="qr-top">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://pdima20020805-maker.github.io/sbor/vote.html" alt="QR">
-            <div class="caption">Отсканируй и проголосуй</div>
+    <div class="stats">
+        <div class="stat boy">
+            <div class="title">👦 Мальчик</div>
+            <div class="num" id="boyCount">0</div>
+            <div class="sub">голосов</div>
+            <div class="money" id="boySum">0 ₽</div>
         </div>
-
-        <!-- Счётчики -->
-        <div class="stats">
-            <div class="stat boy">
-                <div class="title">👦 Мальчик</div>
-                <div class="num" id="boyCount">0</div>
-                <div class="sub">голосов</div>
-                <div class="money" id="boySum">0 ₽</div>
-            </div>
-            <div class="stat girl">
-                <div class="title">👧 Девочка</div>
-                <div class="num" id="girlCount">0</div>
-                <div class="sub">голосов</div>
-                <div class="money" id="girlSum">0 ₽</div>
-            </div>
+        <div class="stat girl">
+            <div class="title">👧 Девочка</div>
+            <div class="num" id="girlCount">0</div>
+            <div class="sub">голосов</div>
+            <div class="money" id="girlSum">0 ₽</div>
         </div>
+    </div>
 
-        <!-- Кнопка пожертвовать -->
-        <div class="donate-wrap">
-            <!-- ⚠️ Замени ССЫЛКА_НА_ПЕРЕВОД на свою -->
-            <a class="btn-donate" href="https://t.tb.ru/pm_short/2pztjHHrZMQ" target="_blank">💛 Пожертвовать</a>
-        </div>
-
+    <div class="donate-wrap">
+        <a class="btn-donate" href="https://t.tb.ru/pm_short/2pztjHHrZMQ" target="_blank">💛 Пожертвовать</a>
     </div>
 
     <script>
-        // ⚠️ Уникальное имя — одинаковое во всех файлах
-        const NAMESPACE = 'sbor2026';
+        const BIN_ID  = '6abcae01ffd5d160533e0111';
+        const API_KEY = '$2a$10$rBFle0OkeFzCiBUYUF5zjuDyuAqVnc5YK41ETmqtoQmkWKoX3vPQ6';
 
         async function loadData() {
             try {
-                const b = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy`).then(r => r.json());
-                document.getElementById('boyCount').textContent = b.value || 0;
-            } catch (e) {}
-            try {
-                const g = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl`).then(r => r.json());
-                document.getElementById('girlCount').textContent = g.value || 0;
-            } catch (e) {}
-            try {
-                const bs = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy_sum`).then(r => r.json());
-                document.getElementById('boySum').textContent = (bs.value || 0) + ' ₽';
-            } catch (e) {}
-            try {
-                const gs = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl_sum`).then(r => r.json());
-                document.getElementById('girlSum').textContent = (gs.value || 0) + ' ₽';
-            } catch (e) {}
+                const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await r.json();
+                const d = data.record || {};
+                document.getElementById('boyCount').textContent  = d.boy || 0;
+                document.getElementById('girlCount').textContent = d.girl || 0;
+                document.getElementById('boySum').textContent    = (d.boy_sum || 0) + ' ₽';
+                document.getElementById('girlSum').textContent   = (d.girl_sum || 0) + ' ₽';
+            } catch (e) {
+                console.log('Ошибка загрузки:', e);
+            }
         }
 
         loadData();

@@ -6,7 +6,7 @@
     <title>Голосование</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; font-family: 'Montserrat', Arial, sans-serif; }
+        html, body { height: 100%; font-family: 'Montserrat', Arial, sans-serif; overflow: hidden; }
         body {
             background: url('img/bg.jpg') center/cover no-repeat fixed;
             display: flex;
@@ -18,19 +18,22 @@
         }
         body::before {
             content: '';
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.2);
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,0.15);
             pointer-events: none;
         }
-        .wrap { position: relative; z-index: 1; width: 100%; max-width: 420px; text-align: center; }
-        h1 { color: #4a1f1f; font-size: 22px; margin-bottom: 24px; }
+        .wrap {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 420px;
+            text-align: center;
+        }
+        h1 { color: #4a1f1f; font-size: 22px; margin-bottom: 22px; }
 
         .choice {
             display: block;
             width: 100%;
             padding: 22px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             border: none;
             border-radius: 18px;
             font-size: 20px;
@@ -45,11 +48,12 @@
         .choice:active { transform: scale(0.97); }
         .choice.boy { background: #4a90d9; }
         .choice.girl { background: #e8a0b4; }
-        .choice.donate { background: #c9a227; margin-top: 20px; font-size: 17px; padding: 18px; }
+        .choice.donate { background: #c9a227; margin-top: 18px; font-size: 17px; padding: 18px; }
+        .choice:disabled { opacity: 0.55; }
 
         .status {
             margin-top: 16px;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95);
             padding: 12px;
             border-radius: 12px;
             font-size: 14px;
@@ -63,18 +67,17 @@
 
     <div class="wrap">
         <h1>Проголосуй!</h1>
-
-        <button class="choice boy" id="boyBtn" onclick="vote('boy')">👦 Мальчик</button>
+        <button class="choice boy"  id="boyBtn"  onclick="vote('boy')">👦 Мальчик</button>
         <button class="choice girl" id="girlBtn" onclick="vote('girl')">👧 Девочка</button>
 
-        <!-- ⚠️ Замени ССЫЛКА_НА_ПЕРЕВОД на свою -->
         <a class="choice donate" href="https://t.tb.ru/pm_short/2pztjHHrZMQ" target="_blank">💛 Пожертвовать</a>
 
         <div class="status" id="status"></div>
     </div>
 
     <script>
-        const NAMESPACE = 'sbor2026';
+        const BIN_ID  = '6abcae01ffd5d160533e0111';
+        const API_KEY = '$2a$10$rBFle0OkeFzCiBUYUF5zjuDyuAqVnc5YK41ETmqtoQmkWKoX3vPQ6';
 
         async function vote(gender) {
             const key = 'voted_' + gender;
@@ -87,19 +90,36 @@
             }
 
             try {
-                const r = await fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/${gender}`).then(r => r.json());
+                const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await r.json();
+                const d = data.record || {};
+
+                if (gender === 'boy') d.boy = (d.boy || 0) + 1;
+                else                  d.girl = (d.girl || 0) + 1;
+
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(d)
+                });
+
                 localStorage.setItem(key, '1');
                 status.textContent = '✅ Ваш голос учтён! Спасибо 💛';
                 status.classList.add('show');
                 document.getElementById('boyBtn').disabled = true;
                 document.getElementById('girlBtn').disabled = true;
             } catch (e) {
+                console.log(e);
                 status.textContent = 'Ошибка, попробуйте позже';
                 status.classList.add('show');
             }
         }
 
-        // Если уже голосовал — сразу блокируем
         if (localStorage.getItem('voted_boy') || localStorage.getItem('voted_girl')) {
             document.getElementById('boyBtn').disabled = true;
             document.getElementById('girlBtn').disabled = true;

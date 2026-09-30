@@ -48,22 +48,24 @@
     </div>
 
     <script>
-        const NAMESPACE = 'sbor';           // ← то же имя, что и везде
-        const ADMIN_PASSWORD = '89198635781';   // ← придумай свой пароль
+        const BIN_ID  = '6abcae01ffd5d160533e0111';
+        const API_KEY = '$2a$10$rBFle0OkeFzCiBUYUF5zjuDyuAqVnc5YK41ETmqtoQmkWKoX3vPQ6';
+        const ADMIN_PASSWORD = '89198635781';   // ← поменяй на свой пароль
 
         let currentBoy = 0, currentGirl = 0;
 
         async function loadSums() {
             try {
-                const b = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/boy_sum`).then(r => r.json());
-                currentBoy = b.value || 0;
-                document.getElementById('currentBoy').textContent = currentBoy + ' ₽';
-            } catch (e) {}
-            try {
-                const g = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/girl_sum`).then(r => r.json());
-                currentGirl = g.value || 0;
+                const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await r.json();
+                const d = data.record || {};
+                currentBoy  = d.boy_sum  || 0;
+                currentGirl = d.girl_sum || 0;
+                document.getElementById('currentBoy').textContent  = currentBoy + ' ₽';
                 document.getElementById('currentGirl').textContent = currentGirl + ' ₽';
-            } catch (e) {}
+            } catch (e) { console.log(e); }
         }
 
         function login() {
@@ -80,7 +82,7 @@
         }
 
         async function addSums() {
-            const addBoy = parseInt(document.getElementById('boyAdd').value) || 0;
+            const addBoy  = parseInt(document.getElementById('boyAdd').value)  || 0;
             const addGirl = parseInt(document.getElementById('girlAdd').value) || 0;
             const status = document.getElementById('saveStatus');
 
@@ -90,21 +92,37 @@
                 return;
             }
 
-            const newBoy = currentBoy + addBoy;
-            const newGirl = currentGirl + addGirl;
-
             try {
-                await fetch(`https://api.countapi.xyz/set/${NAMESPACE}/boy_sum?value=${newBoy}`);
-                await fetch(`https://api.countapi.xyz/set/${NAMESPACE}/girl_sum?value=${newGirl}`);
-                currentBoy = newBoy; currentGirl = newGirl;
-                document.getElementById('currentBoy').textContent = currentBoy + ' ₽';
+                const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await r.json();
+                const d = data.record || {};
+
+                d.boy_sum  = (d.boy_sum  || 0) + addBoy;
+                d.girl_sum = (d.girl_sum || 0) + addGirl;
+
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(d)
+                });
+
+                currentBoy  = d.boy_sum;
+                currentGirl = d.girl_sum;
+                document.getElementById('currentBoy').textContent  = currentBoy + ' ₽';
                 document.getElementById('currentGirl').textContent = currentGirl + ' ₽';
-                document.getElementById('boyAdd').value = '';
+                document.getElementById('boyAdd').value  = '';
                 document.getElementById('girlAdd').value = '';
+
                 status.textContent = '✅ Новый итог: 👦 ' + currentBoy + ' ₽ / 👧 ' + currentGirl + ' ₽';
                 status.className = 'status show';
                 setTimeout(() => status.classList.remove('show'), 4000);
             } catch (e) {
+                console.log(e);
                 status.textContent = '❌ Ошибка';
                 status.className = 'status show error';
             }
