@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Голосование</title>
+    <title>Пожертвование</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
@@ -16,150 +16,64 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 16px;
+            justify-content: center;
+            padding: 20px;
             position: relative;
         }
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.15);
             pointer-events: none;
+            z-index: 0;
         }
 
-        /* Верх: QR по центру */
-        .qr-top {
+        /* QR-код для оплаты */
+        .qr-block {
             position: relative;
             z-index: 1;
-            background: rgba(255,255,255,0.95);
-            padding: 10px;
-            border-radius: 18px;
-            box-shadow: 0 6px 28px rgba(0,0,0,0.2);
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 22px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
             text-align: center;
-            margin-top: 10px;
+            max-width: 90vw;
         }
-        .qr-top img {
+        .qr-block img {
             display: block;
-            width: 200px;
-            height: 200px;
+            width: 70vmin;              /* крупный, адаптивный размер */
+            height: 70vmin;
+            max-width: 480px;
+            max-height: 480px;
+            object-fit: contain;
         }
-        .qr-top .caption {
-            font-size: 13px;
-            color: #4a1f1f;
-            margin-top: 6px;
-            font-weight: 800;
-        }
-
-        /* Середина: счётчики */
-        .stats {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            gap: 16px;
-            width: 100%;
-            max-width: 560px;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        .stat {
-            flex: 1;
-            background: rgba(255,255,255,0.92);
-            border-radius: 20px;
-            padding: 18px 14px;
-            text-align: center;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.15);
-            backdrop-filter: blur(6px);
-        }
-        .stat.boy { border-top: 6px solid #4a90d9; }
-        .stat.girl { border-top: 6px solid #e8a0b4; }
-        .stat .title { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
-        .stat.boy .title { color: #4a90d9; }
-        .stat.girl .title { color: #e8a0b4; }
-        .stat .num {
-            font-size: 44px;
-            font-weight: 900;
-            color: #4a1f1f;
-            line-height: 1;
-        }
-        .stat .sub { font-size: 12px; color: #888; margin-top: 4px; }
-        .stat .money {
-            font-size: 24px;
-            font-weight: 900;
-            color: #8b0000;
+        .qr-block .caption {
             margin-top: 12px;
+            font-size: 15px;
+            color: #4a1f1f;
+            font-weight: 800;
+        }
+        .qr-block .sub {
+            margin-top: 4px;
+            font-size: 13px;
+            color: #888;
         }
 
-        /* Низ: кнопка */
-        .donate-wrap {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 14px;
+        @media (max-width: 480px) {
+            .qr-block img { width: 82vw; height: 82vw; }
+            .qr-block .caption { font-size: 14px; }
+            .qr-block .sub { font-size: 12px; }
         }
-        .btn-donate {
-            background: #c9a227;
-            color: #fff;
-            padding: 16px 40px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 800;
-            text-decoration: none;
-            box-shadow: 0 6px 24px rgba(201,162,39,0.55);
-            transition: transform 0.15s;
-            display: inline-block;
-        }
-        .btn-donate:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
-    <div class="qr-top">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://pdima20020805-maker.github.io/sbor/vote.html" alt="QR">
-        <div class="caption">Отсканируй и проголосуй</div>
+    <div class="qr-block">
+        <img src="img/qr-pay.png" alt="QR-код для оплаты">
+        <div class="caption">Отсканируйте QR-код для перевода</div>
+        <div class="sub">Парфенов Дмитрий Андреевич</div>
     </div>
-
-    <div class="stats">
-        <div class="stat boy">
-            <div class="title">👦 Мальчик</div>
-            <div class="num" id="boyCount">0</div>
-            <div class="sub">голосов</div>
-            <div class="money" id="boySum">0 ₽</div>
-        </div>
-        <div class="stat girl">
-            <div class="title">👧 Девочка</div>
-            <div class="num" id="girlCount">0</div>
-            <div class="sub">голосов</div>
-            <div class="money" id="girlSum">0 ₽</div>
-        </div>
-    </div>
-
-    <div class="donate-wrap">
-        <a class="btn-donate" href="https://t.tb.ru/pm_short/7BhMZ0EUAbW" target="_blank">💛 Пожертвовать</a>
-    </div>
-
-    <script>
-        const BIN_ID  = '6abcae01ffd5d160533e0111';
-        const API_KEY = '$2a$10$rBFle0OkeFzCiBUYUF5zjuDyuAqVnc5YK41ETmqtoQmkWKoX3vPQ6';
-
-        async function loadData() {
-            try {
-                const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                const data = await r.json();
-                const d = data.record || {};
-                document.getElementById('boyCount').textContent  = d.boy || 0;
-                document.getElementById('girlCount').textContent = d.girl || 0;
-                document.getElementById('boySum').textContent    = (d.boy_sum || 0) + ' ₽';
-                document.getElementById('girlSum').textContent   = (d.girl_sum || 0) + ' ₽';
-            } catch (e) {
-                console.log('Ошибка загрузки:', e);
-            }
-        }
-
-        loadData();
-        setInterval(loadData, 5000);
-    </script>
 
 </body>
 </html>
