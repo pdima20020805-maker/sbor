@@ -12,7 +12,8 @@
             overflow: hidden;
         }
         body {
-            background: url('img/bg.jpg') center/cover no-repeat fixed;
+            /* Убрали картинку, поставили бордовый цвет (в тон твоему сайту) */
+            background: #4a1f1f; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,23 +21,15 @@
             padding: 20px;
             position: relative;
         }
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.15);
-            pointer-events: none;
-            z-index: 0;
-        }
 
         /* QR-код для оплаты */
         .qr-block {
             position: relative;
             z-index: 1;
             background: #ffffff;
-            padding: 18px;
-            border-radius: 22px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.6); /* Сделали тень чуть темнее для контраста */
             text-align: center;
             max-width: 90vw;
         }
@@ -49,21 +42,21 @@
             object-fit: contain;
         }
         .qr-block .caption {
-            margin-top: 12px;
-            font-size: 15px;
-            color: #4a1f1f;
+            margin-top: 14px;
+            font-size: 16px;
+            color: #4a1f1f;             /* Текст тоже бордовый */
             font-weight: 800;
         }
         .qr-block .sub {
             margin-top: 4px;
-            font-size: 13px;
+            font-size: 14px;
             color: #888;
         }
 
         @media (max-width: 480px) {
-            .qr-block img { width: 82vw; height: 82vw; }
-            .qr-block .caption { font-size: 14px; }
-            .qr-block .sub { font-size: 12px; }
+            .qr-block img { width: 85vw; height: 85vw; }
+            .qr-block .caption { font-size: 15px; }
+            .qr-block .sub { font-size: 13px; }
         }
     </style>
 </head>
